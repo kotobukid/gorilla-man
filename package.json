@@ -1,15 +1,17 @@
 {
-  "name": "gorilla_man",
+  "name": "gorilla-man",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "tsc": "tsc --watch"
+    "tsc": "tsc --watch",
+    "runserver": "sudo forever start -l ./log.txt -a index.js",
+    "stopserver": "sudo forever stop index.js"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@types/ioredis": "^4.22.1",
     "@types/node": "^14.14.35",
