@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "tsc": "tsc --watch",
-    "runserver": "sudo forever start -l ./log.txt -a index.js",
+    "runserver": "sudo forever start -l ./gorilla-man-log.txt -a index.js",
     "stopserver": "sudo forever stop index.js"
   },
   "keywords": [],
