@@ -1,8 +1,13 @@
-import Discord from 'discord.js';
+import Discord, {Channel} from 'discord.js';
 
 const client: Discord.Client = new Discord.Client();
 import process from 'process';
 import fs from 'fs';
+
+import Redis from "ioredis";
+import {Redis as R} from "ioredis"
+
+const redis: R = new Redis();
 
 let token: string = '';
 
@@ -17,7 +22,18 @@ if (fs.existsSync('./config/secret.js')) {
     process.exit(1);
 }
 
+let notice_channel: string = '';
+
 client.on('ready', () => {
+
+    for (const [key, value] of client.channels.cache) {
+        // @ts-ignore
+        if (value.name === '一般' && value.type === 'text') {
+            notice_channel = key;
+            break;
+        }
+    }
+
     console.log(`${client.user!.tag} でログイン`);
 });
 
@@ -37,4 +53,19 @@ client.on('message', async msg => {
     }
 });
 
-client.login(token).then();
+redis.subscribe('inspect').then(() => {
+    redis.on('message', (channel: string, message: string) => {
+        if (channel === 'inspect') {
+            const channel: Channel | undefined = client.channels.cache.get(notice_channel);
+            if (channel) {
+                //@ts-ignore
+                channel.send(message);
+            } else {
+                console.error(`target channel not found: ${notice_channel}`);
+            }
+        }
+    });
+})
+
+client.login(token).then((used_token) => {
+});

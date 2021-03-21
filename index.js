@@ -35,6 +35,33 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -43,8 +70,10 @@ var discord_js_1 = __importDefault(require("discord.js"));
 var client = new discord_js_1.default.Client();
 var process_1 = __importDefault(require("process"));
 var fs_1 = __importDefault(require("fs"));
+var ioredis_1 = __importDefault(require("ioredis"));
+var redis = new ioredis_1.default();
 var token = '';
-if (fs_1.default.existsSync('./config/secret/js')) {
+if (fs_1.default.existsSync('./config/secret.js')) {
     token = require('./config/secret');
     if (!token) {
         console.error('secret.js empty.');
@@ -55,7 +84,26 @@ else {
     console.error('./config/secret.js not found.');
     process_1.default.exit(1);
 }
+var notice_channel = '';
 client.on('ready', function () {
+    var e_1, _a;
+    try {
+        for (var _b = __values(client.channels.cache), _c = _b.next(); !_c.done; _c = _b.next()) {
+            var _d = __read(_c.value, 2), key = _d[0], value = _d[1];
+            // @ts-ignore
+            if (value.name === '一般' && value.type === 'text') {
+                notice_channel = key;
+                break;
+            }
+        }
+    }
+    catch (e_1_1) { e_1 = { error: e_1_1 }; }
+    finally {
+        try {
+            if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+        }
+        finally { if (e_1) throw e_1.error; }
+    }
     console.log(client.user.tag + " \u3067\u30ED\u30B0\u30A4\u30F3");
 });
 client.on('message', function (msg) { return __awaiter(void 0, void 0, void 0, function () {
@@ -77,4 +125,19 @@ client.on('message', function (msg) { return __awaiter(void 0, void 0, void 0, f
         return [2 /*return*/];
     });
 }); });
-client.login(token).then();
+redis.subscribe('inspect').then(function () {
+    redis.on('message', function (channel, message) {
+        if (channel === 'inspect') {
+            var channel_1 = client.channels.cache.get(notice_channel);
+            if (channel_1) {
+                //@ts-ignore
+                channel_1.send(message);
+            }
+            else {
+                console.error("target channel not found: " + notice_channel);
+            }
+        }
+    });
+});
+client.login(token).then(function (used_token) {
+});
