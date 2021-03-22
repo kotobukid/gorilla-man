@@ -1,11 +1,10 @@
-import Discord, {Channel} from 'discord.js';
-
-const client: Discord.Client = new Discord.Client();
+import Discord, {Channel, Message, TextChannel} from 'discord.js';
 import process from 'process';
 import fs from 'fs';
 
-import Redis from "ioredis";
-import {Redis as R} from "ioredis"
+import Redis, {Redis as R} from "ioredis";
+
+const client: Discord.Client = new Discord.Client();
 
 const redis: R = new Redis();
 
@@ -27,8 +26,7 @@ let notice_channel: string = '';
 client.on('ready', () => {
 
     for (const [key, value] of client.channels.cache) {
-        // @ts-ignore
-        if (value.name === '一般' && value.type === 'text') {
+        if ((value as TextChannel).name === '一般' && value.type === 'text') {
             notice_channel = key;
             break;
         }
@@ -37,7 +35,7 @@ client.on('ready', () => {
     console.log(`${client.user!.tag} でログイン`);
 });
 
-client.on('message', async msg => {
+client.on('message', async (msg: Message) => {
     if (msg.author.bot) {
         return;
     } else if (msg.content === '!ping') {
@@ -58,8 +56,7 @@ redis.subscribe('inspect').then(() => {
         if (channel === 'inspect') {
             const channel: Channel | undefined = client.channels.cache.get(notice_channel);
             if (channel) {
-                //@ts-ignore
-                channel.send(message);
+                (channel as TextChannel).send(message).then();
             } else {
                 console.error(`target channel not found: ${notice_channel}`);
             }
@@ -67,5 +64,5 @@ redis.subscribe('inspect').then(() => {
     });
 })
 
-client.login(token).then((used_token) => {
+client.login(token).then(() => {
 });

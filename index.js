@@ -67,10 +67,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var discord_js_1 = __importDefault(require("discord.js"));
-var client = new discord_js_1.default.Client();
 var process_1 = __importDefault(require("process"));
 var fs_1 = __importDefault(require("fs"));
 var ioredis_1 = __importDefault(require("ioredis"));
+var client = new discord_js_1.default.Client();
 var redis = new ioredis_1.default();
 var token = '';
 if (fs_1.default.existsSync('./config/secret.js')) {
@@ -90,7 +90,6 @@ client.on('ready', function () {
     try {
         for (var _b = __values(client.channels.cache), _c = _b.next(); !_c.done; _c = _b.next()) {
             var _d = __read(_c.value, 2), key = _d[0], value = _d[1];
-            // @ts-ignore
             if (value.name === '一般' && value.type === 'text') {
                 notice_channel = key;
                 break;
@@ -130,8 +129,7 @@ redis.subscribe('inspect').then(function () {
         if (channel === 'inspect') {
             var channel_1 = client.channels.cache.get(notice_channel);
             if (channel_1) {
-                //@ts-ignore
-                channel_1.send(message);
+                channel_1.send(message).then();
             }
             else {
                 console.error("target channel not found: " + notice_channel);
@@ -139,5 +137,5 @@ redis.subscribe('inspect').then(function () {
         }
     });
 });
-client.login(token).then(function (used_token) {
+client.login(token).then(function () {
 });
