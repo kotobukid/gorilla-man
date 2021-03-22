@@ -114,7 +114,7 @@ client.on('message', function (msg) { return __awaiter(void 0, void 0, void 0, f
             msg.channel.send('Pong!').then();
         }
         else if (msg.content === '!logout') {
-            msg.channel.send("I'l be back").then();
+            msg.channel.send("I'll be back").then();
             console.log("I'll be back");
             setTimeout(function () {
                 client.destroy();

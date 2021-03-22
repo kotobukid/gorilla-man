@@ -41,7 +41,7 @@ client.on('message', async (msg: Message) => {
     } else if (msg.content === '!ping') {
         msg.channel.send('Pong!').then();
     } else if (msg.content === '!logout') {
-        msg.channel.send("I'l be back").then();
+        msg.channel.send("I'll be back").then();
         console.log("I'll be back");
 
         setTimeout(() => {
