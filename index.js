@@ -69,8 +69,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var discord_js_1 = __importDefault(require("discord.js"));
 var process_1 = __importDefault(require("process"));
 var fs_1 = __importDefault(require("fs"));
+var underscore_1 = __importDefault(require("underscore"));
 var ioredis_1 = __importDefault(require("ioredis"));
 var client = new discord_js_1.default.Client();
+var UNDELETABLE_CHANNELS = ['一般', 'another'];
 var redis = new ioredis_1.default();
 var token = '';
 if (fs_1.default.existsSync('./config/secret.js')) {
@@ -82,6 +84,21 @@ if (fs_1.default.existsSync('./config/secret.js')) {
 }
 else {
     console.error('./config/secret.js not found.');
+    process_1.default.exit(1);
+}
+var category = {
+    text: '',
+    voice: ''
+};
+if (fs_1.default.existsSync('./config/category.js')) {
+    category = require('./config/category');
+    if (!token) {
+        console.error('category.js empty.');
+        process_1.default.exit(1);
+    }
+}
+else {
+    console.error('./config/category.js not found.');
     process_1.default.exit(1);
 }
 var notice_channel = '';
@@ -105,8 +122,11 @@ client.on('ready', function () {
     }
     console.log(client.user.tag + " \u3067\u30ED\u30B0\u30A4\u30F3");
 });
+// @ts-ignore
 client.on('message', function (msg) { return __awaiter(void 0, void 0, void 0, function () {
-    return __generator(this, function (_a) {
+    var texts, _channel_name, channel_name_1, name_1, _a, _b, _c, key, value;
+    var e_2, _d;
+    return __generator(this, function (_e) {
         if (msg.author.bot) {
             return [2 /*return*/];
         }
@@ -120,6 +140,48 @@ client.on('message', function (msg) { return __awaiter(void 0, void 0, void 0, f
                 client.destroy();
                 process_1.default.exit();
             }, 2500);
+        }
+        else if (msg.content.startsWith('mkch')) { // チャンネルを作成する
+            texts = msg.content.replace(/　/ig, ' ');
+            _channel_name = texts.split(' ');
+            if (_channel_name.length > 1) {
+                channel_name_1 = _channel_name[1];
+                msg.guild.channels.create(channel_name_1, {
+                    type: 'text',
+                    parent: category.text
+                }).then(function () {
+                    msg.guild.channels.create(channel_name_1, {
+                        type: 'voice',
+                        parent: category.voice
+                    });
+                })
+                    .catch(function (err) {
+                    console.log(err);
+                });
+            }
+        }
+        else if (msg.content === 'delch') {
+            name_1 = msg.channel.name;
+            try {
+                for (_a = __values(client.channels.cache), _b = _a.next(); !_b.done; _b = _a.next()) {
+                    _c = __read(_b.value, 2), key = _c[0], value = _c[1];
+                    if (value.name === name_1) {
+                        if (underscore_1.default.include(UNDELETABLE_CHANNELS, name_1)) {
+                            break;
+                        }
+                        if ((value.type === 'text') || (value.type === 'voice')) {
+                            value.delete().then();
+                        }
+                    }
+                }
+            }
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            finally {
+                try {
+                    if (_b && !_b.done && (_d = _a.return)) _d.call(_a);
+                }
+                finally { if (e_2) throw e_2.error; }
+            }
         }
         return [2 /*return*/];
     });
